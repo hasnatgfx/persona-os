@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Persona OS — Client Persona Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF8; --surface:#FFFFFF; --surface-2:#F3F3F1;
+    --ink:#1B1C1F; --ink-muted:#6B6E76; --ink-faint:#9A9CA3;
+    --border:#E6E5E1; --border-strong:#D3D2CC;
+    --accent:#2F5DFF; --accent-ink:#FFFFFF; --accent-soft:#EAEFFF;
+    --success:#1C8A5D; --success-soft:#E6F4ED;
+    --warn:#B7791F; --warn-soft:#FBF0DD;
+    --danger:#C0392B; --danger-soft:#FBEAE7;
+    --radius:10px; --radius-lg:16px;
+    --shadow:0 1px 2px rgba(20,20,20,.04), 0 8px 24px rgba(20,20,20,.05);
+  }
+  [data-theme="dark"]{
+    --bg:#16171A; --surface:#1D1F23; --surface-2:#25272C;
+    --ink:#ECECEE; --ink-muted:#A2A4AC; --ink-faint:#6C6E76;
+    --border:#33353B; --border-strong:#43454C;
+    --accent:#5B82FF; --accent-ink:#0F1220; --accent-soft:#1E2740;
+    --success:#4CBA88; --success-soft:#173327;
+    --warn:#E0AC52; --warn-soft:#332A15;
+    --danger:#E17B6D; --danger-soft:#331E1B;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  button{font-family:inherit;}
+  a{color:inherit;}
+  ::selection{background:var(--accent-soft);}
+  *:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  #app{display:flex; min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:248px; flex-shrink:0; background:var(--surface);
+    border-right:1px solid var(--border); padding:24px 16px;
+    display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; align-items:baseline; gap:8px; padding:0 8px 22px 8px;}
+  .brand-mark{width:9px;height:9px;border-radius:2px;background:var(--accent); transform:rotate(45deg); flex-shrink:0;}
+  .brand-name{font-family:'Fraunces',serif; font-weight:600; font-size:17px; letter-spacing:-0.01em;}
+  .nav{display:flex; flex-direction:column; gap:2px; margin-top:4px;}
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px;
+    color:var(--ink-muted); font-size:13.5px; font-weight:500; cursor:pointer; border:none; background:none;
+    text-align:left; width:100%;
+  }
+  .nav-item:hover{background:var(--surface-2); color:var(--ink);}
+  .nav-item.active{background:var(--accent-soft); color:var(--accent);}
+  .nav-icon{width:16px; text-align:center; font-size:14px; opacity:.85;}
+  .sidebar-spacer{flex:1;}
+  .sidebar-foot{border-top:1px solid var(--border); padding-top:14px; margin-top:10px;}
+  .sidebar-progress-label{font-size:11.5px; color:var(--ink-faint); margin-bottom:6px;}
+  .sidebar-progress-bar{height:5px; background:var(--surface-2); border-radius:4px; overflow:hidden; margin-bottom:5px;}
+  .sidebar-progress-fill{height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease;}
+  .sidebar-progress-pct{font-size:12.5px; font-weight:600;}
+  .sidebar-project{font-size:11.5px; color:var(--ink-faint); margin-top:12px; line-height:1.4;}
+  .sidebar-project b{color:var(--ink-muted); font-weight:600; display:block; font-size:11px; margin-bottom:2px;}
+
+  /* ---------- Main ---------- */
+  main{flex:1; min-width:0; padding:32px 40px 80px 40px; max-width:1080px;}
+  .topbar{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:16px;}
+  .view-title{font-size:23px; font-weight:600; letter-spacing:-0.01em;}
+  .view-sub{color:var(--ink-muted); font-size:13.5px; margin-top:4px;}
+  .theme-toggle{
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-muted);
+    border-radius:20px; padding:6px 12px; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .theme-toggle:hover{color:var(--ink); border-color:var(--ink-faint);}
+
+  /* ---------- Buttons / inputs ---------- */
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; border-radius:8px; padding:8px 14px;
+    font-size:13px; font-weight:600; cursor:pointer; border:1px solid transparent; white-space:nowrap;
+  }
+  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-primary:hover{filter:brightness(1.07);}
+  .btn-secondary{background:var(--surface); color:var(--ink); border-color:var(--border-strong);}
+  .btn-secondary:hover{background:var(--surface-2);}
+  .btn-ghost{background:none; color:var(--ink-muted); border:none; padding:6px 8px;}
+  .btn-ghost:hover{color:var(--ink);}
+  .btn-danger{background:var(--danger-soft); color:var(--danger);}
+  .btn-sm{padding:5px 10px; font-size:12px; border-radius:7px;}
+  input[type=text],input[type=date],input[type=url],select,textarea{
+    width:100%; background:var(--surface); border:1px solid var(--border-strong); color:var(--ink);
+    border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;
+  }
+  textarea{resize:vertical; min-height:70px; line-height:1.5;}
+  label.field-label{display:block; font-size:12px; font-weight:600; color:var(--ink-muted); margin-bottom:5px;}
+  .field{margin-bottom:14px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .field-row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+
+  /* ---------- Sections / panels ---------- */
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px 24px; margin-bottom:20px;}
+  .panel-title{font-size:15.5px; font-weight:600; margin-bottom:2px;}
+  .panel-sub{font-size:12.5px; color:var(--ink-muted); margin-bottom:16px;}
+  .hr{height:1px; background:var(--border); margin:18px 0;}
+
+  /* ---------- Dashboard hero ---------- */
+  .hero{margin-bottom:26px;}
+  .hero-greeting{font-size:22px; font-weight:500; margin-bottom:4px;}
+  .hero-sub{color:var(--ink-muted); font-size:14px;}
+  .stat-row{display:grid; grid-template-columns:1.2fr 1fr; gap:16px; margin-bottom:20px;}
+  .stat-big{font-family:'Fraunces',serif; font-size:44px; font-weight:600; line-height:1;}
+  .progress-track{height:8px; background:var(--surface-2); border-radius:5px; overflow:hidden; margin:14px 0 8px 0;}
+  .progress-fill{height:100%; background:var(--accent); border-radius:5px; transition:width .5s ease;}
+  .progress-caption{font-size:12.5px; color:var(--ink-muted);}
+
+  /* stepper */
+  .stepper{display:flex; align-items:center; margin:6px 0 4px 0;}
+  .step{display:flex; flex-direction:column; align-items:center; flex:1; position:relative;}
+  .step-dot{width:11px; height:11px; border-radius:50%; background:var(--border-strong); border:2px solid var(--surface); box-shadow:0 0 0 1px var(--border-strong); z-index:1;}
+  .step.done .step-dot{background:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .step.current .step-dot{background:var(--accent-ink); box-shadow:0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);}
+  .step-line{position:absolute; top:5px; left:50%; width:100%; height:2px; background:var(--border-strong); z-index:0;}
+  .step.done .step-line{background:var(--accent);}
+  .step:first-child .step-line{display:none;}
+  .step-label{font-size:11.5px; margin-top:8px; color:var(--ink-muted); font-weight:600; text-align:center;}
+  .step.current .step-label{color:var(--ink);}
+
+  /* next action */
+  .next-action{display:flex; justify-content:space-between; align-items:center; gap:16px; background:var(--accent-soft); border-radius:var(--radius-lg); padding:18px 22px;}
+  .next-action-label{font-size:11.5px; font-weight:700; color:var(--accent); letter-spacing:.02em; margin-bottom:4px;}
+  .next-action-title{font-size:16px; font-weight:600; margin-bottom:4px;}
+  .next-action-why{font-size:12.5px; color:var(--ink-muted); max-width:480px;}
+
+  /* phase cards */
+  .phase-card{border:1px solid var(--border); border-radius:var(--radius-lg); margin-bottom:14px; overflow:hidden; background:var(--surface);}
+  .phase-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:pointer;}
+  .phase-head-left{display:flex; align-items:center; gap:14px;}
+  .phase-num{font-family:'Fraunces',serif; font-size:13px; color:var(--ink-faint); font-weight:600; width:22px;}
+  .phase-name{font-weight:600; font-size:14.5px;}
+  .phase-desc{font-size:12px; color:var(--ink-muted); margin-top:2px;}
+  .phase-meta{display:flex; align-items:center; gap:14px;}
+  .phase-pct{font-size:12.5px; font-weight:600; color:var(--ink-muted); width:36px; text-align:right;}
+  .phase-mini-track{width:70px; height:5px; background:var(--surface-2); border-radius:4px; overflow:hidden;}
+  .phase-mini-fill{height:100%; background:var(--accent); border-radius:4px;}
+  .phase-complete-badge{background:var(--success-soft); color:var(--success); font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px;}
+  .chevron{color:var(--ink-faint); transition:transform .2s ease; font-size:11px;}
+  .phase-card.open .chevron{transform:rotate(90deg);}
+  .phase-body{padding:0 20px 20px 20px; display:none; border-top:1px solid var(--border);}
+  .phase-card.open .phase-body{display:block; padding-top:16px;}
+
+  .checklist-group-title{font-size:11.5px; font-weight:700; color:var(--ink-faint); margin:14px 0 6px 0;}
+  .checklist-group-title:first-child{margin-top:0;}
+  .check-row{display:flex; align-items:flex-start; gap:10px; padding:7px 8px; border-radius:8px; cursor:pointer;}
+  .check-row:hover{background:var(--surface-2);}
+  .check-box{width:16px; height:16px; border:1.5px solid var(--border-strong); border-radius:5px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent;}
+  .check-row.checked .check-box{background:var(--success); border-color:var(--success); color:#fff;}
+  .check-row.checked .check-label{text-decoration:line-through; color:var(--ink-faint);}
+  .check-label{font-size:13.5px;}
+
+  /* badges */
+  .badge{display:inline-flex; align-items:center; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px;}
+  .badge-neutral{background:var(--surface-2); color:var(--ink-muted);}
+  .badge-progress{background:var(--accent-soft); color:var(--accent);}
+  .badge-success{background:var(--success-soft); color:var(--success);}
+  .badge-warn{background:var(--warn-soft); color:var(--warn);}
+  .badge-danger{background:var(--danger-soft); color:var(--danger);}
+  .demo-tag{background:var(--warn-soft); color:var(--warn); font-size:10px; font-weight:700; padding:2px 7px; border-radius:5px; margin-left:8px;}
+
+  /* table */
+  .table-toolbar{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+  .table-toolbar input, .table-toolbar select{width:auto; min-width:120px;}
+  .table-toolbar input[type=text]{flex:1; min-width:180px;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th{text-align:left; font-size:11px; color:var(--ink-faint); font-weight:700; padding:8px 10px; border-bottom:1px solid var(--border);}
+  td{padding:11px 10px; border-bottom:1px solid var(--border); vertical-align:middle;}
+  tr.person-row{cursor:pointer;}
+  tr.person-row:hover{background:var(--surface-2);}
+  .fit-score{font-weight:700;}
+  .stars{color:var(--warn); letter-spacing:1px;}
+  .cards-mobile{display:none;}
+
+  /* modal */
+  .modal-overlay{position:fixed; inset:0; background:rgba(15,15,17,.45); display:flex; align-items:flex-start; justify-content:center; padding:40px 20px; z-index:50; overflow-y:auto;}
+  .modal{background:var(--surface); border-radius:var(--radius-lg); max-width:620px; width:100%; padding:26px 28px; box-shadow:var(--shadow); margin-bottom:40px;}
+  .modal-title{font-size:17px; font-weight:600; margin-bottom:2px;}
+  .modal-sub{font-size:12.5px; color:var(--ink-muted); margin-bottom:18px;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px;}
+
+  /* toast */
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:8px; font-size:13px; font-weight:500; opacity:0; transition:all .25s ease; z-index:100; pointer-events:none;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* persona summary card */
+  .persona-summary{border:1px solid var(--border); border-radius:var(--radius-lg); padding:26px 28px; background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 100%);}
+  .persona-summary h2{font-size:22px; margin:0 0 16px 0;}
+  .persona-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px 28px;}
+  .persona-field-label{font-size:11px; font-weight:700; color:var(--ink-faint); margin-bottom:3px;}
+  .persona-field-value{font-size:13.5px;}
+
+  .empty-state{text-align:center; padding:50px 20px; color:var(--ink-muted);}
+  .empty-state h3{color:var(--ink); font-size:16px; margin-bottom:6px;}
+  .empty-state p{font-size:13px; max-width:360px; margin:0 auto 16px auto;}
+
+  .evidence-pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; background:var(--surface-2); padding:4px 10px; border-radius:20px; color:var(--ink-muted);}
+
+  .list-entry{border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:10px;}
+  .list-entry-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;}
+  .list-entry-title{font-weight:600; font-size:13.5px;}
+  .list-entry-meta{font-size:11.5px; color:var(--ink-faint);}
+  .list-entry-body{font-size:13px; color:var(--ink-muted); white-space:pre-wrap;}
+
+  ::placeholder{color:var(--ink-faint);}
+
+  @media (max-width: 880px){
+    #app{flex-direction:column;}
+    .sidebar{position:relative; width:100%; height:auto; flex-direction:row; align-items:center; padding:14px 16px; overflow-x:auto;}
+    .sidebar-spacer{display:none;}
+    .sidebar-foot{display:none;}
+    .nav{flex-direction:row; margin-top:0;}
+    main{padding:20px;}
+    .field-row,.field-row3,.persona-grid,.stat-row{grid-template-columns:1fr;}
+    table{display:none;}
+    .cards-mobile{display:block;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================= STORAGE ============================= */
+const STORAGE_KEY = 'persona-os-state-v1';
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){ /* no saved state yet */ }
+  return null;
+}
+let saveTimer = null;
+function persist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e){ console.error('Storage error', e); showToast('Could not save — your changes are only in this session'); }
+  }, 250);
+}
+
+/* ============================= DEFAULT / DEMO STATE ============================= */
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+function defaultState(){
+  const now = new Date().toISOString().slice(0,10);
+  return {
+    theme:'light',
+    currentView:'dashboard',
+    project:{
+      name:'Cybersecurity Consultant ICP',
+      icp:'Cybersecurity & IT leaders building authority on LinkedIn',
+      goal:'Turn deep technical expertise into a credible, visual personal brand',
+      status:'Researching',
+      created:now,
+      updated:now
+    },
+    phase1:{
+      checklist:[
+        {id:'p1-1', group:'Market', label:'Choose primary industry', checked:true},
+        {id:'p1-2', group:'Market', label:'Choose target role', checked:true},
+        {id:'p1-3', group:'Market', label:'Define business model', checked:true},
+        {id:'p1-4', group:'Market', label:'Define company/client type', checked:false},
+        {id:'p1-5', group:'Problem', label:'Define primary problem', checked:true},
+        {id:'p1-6', group:'Problem', label:'Define secondary problems', checked:false},
+        {id:'p1-7', group:'Problem', label:'Define desired outcome', checked:true},
+        {id:'p1-8', group:'Financial fit', label:'Define minimum financial fit', checked:false},
+        {id:'p1-9', group:'Financial fit', label:'Identify high-value service/business models', checked:false},
+        {id:'p1-10', group:'Financial fit', label:'Identify signs the client can afford professional services', checked:false},
+        {id:'p1-11', group:'ICP hypothesis', label:'Write initial ICP statement', checked:true},
+      ],
+      hypothesis:'I help cybersecurity consultants and IT leaders turn their expertise into credible LinkedIn content that builds authority and attracts opportunities.'
+    },
+    phase2:{
+      checklist:[
+        {id:'p2-1', group:null, label:'Research 20 potential clients', checked:true},
+        {id:'p2-2', group:null, label:"Review each person's LinkedIn activity", checked:true},
+        {id:'p2-3', group:null, label:'Assess visual quality of their brand', checked:true},
+        {id:'p2-4', group:null, label:'Assess content quality', checked:true},
+        {id:'p2-5', group:null, label:'Identify pain signals', checked:true},
+        {id:'p2-6', group:null, label:'Identify buying signals', checked:true},
+        {id:'p2-7', group:null, label:'Note possible design opportunities', checked:true},
+        {id:'p2-8', group:null, label:'Score persona fit for each person', checked:false},
+        {id:'p2-9', group:null, label:'Tag notable people for pattern analysis', checked:false},
+        {id:'p2-10', group:null, label:'Review lowest-fit profiles for disqualifiers', checked:false},
+        {id:'p2-11', group:null, label:'Reach 10 people with strong fit scores', checked:false},
+      ],
+      people:[
+        {
+          id:uid(), demo:true, name:'Alex Morgan', company:'Morgan Security Advisory', website:'', linkedin:'',
+          industry:'Cybersecurity', role:'Independent Consultant', location:'Austin, TX',
+          sells:'Penetration testing & vCISO retainers', audience:'Mid-market finance & healthcare firms',
+          businessModel:'Retainer + project', marketPosition:'Established but low visibility',
+          linkedinActivity:'High', postingFrequency:'2–3x/week', visualQuality:2, contentQuality:4,
+          brandMaturity:'Developing',
+          painSignals:'Strong technical reputation but LinkedIn presence looks dated — reused slide screenshots, no consistent visual system.',
+          buyingSignals:'Recently posted about "finally getting around to a rebrand" and asked followers for designer recommendations.',
+          opportunity:'Full visual identity + a repeatable LinkedIn content template system.',
+          notes:'Warm — worth a direct outreach.', fitScore:82, status:'Researched'
+        },
+        {
+          id:uid(), demo:true, name:'Sarah Khan', company:'Khan Cyber Advisory', website:'', linkedin:'',
+          industry:'Security Advisory', role:'CISO / Fractional Advisor', location:'Toronto, ON',
+          sells:'Fractional CISO services', audience:'Series B–D startups',
+          businessModel:'Fractional retainer', marketPosition:'Growing, active speaker',
+          linkedinActivity:'Medium', postingFrequency:'Weekly', visualQuality:3, contentQuality:3,
+          brandMaturity:'Established',
+          painSignals:'Good writing, but visuals are inconsistent template slides from three different tools.',
+          buyingSignals:'Mentioned upcoming conference talk and wanting "something that actually looks like one brand."',
+          opportunity:'Talk deck template + matching LinkedIn carousel system.',
+          notes:'', fitScore:71, status:'Researched'
+        }
+      ]
+    },
+    phase3:{
+      checklist:[
+        {id:'p3-1', label:'Identify common pain points', checked:true},
+        {id:'p3-2', label:'Identify common content topics', checked:false},
+        {id:'p3-3', label:'Identify common visual problems', checked:true},
+        {id:'p3-4', label:'Identify common buying triggers', checked:false},
+        {id:'p3-5', label:'Identify common objections', checked:false},
+        {id:'p3-6', label:'Identify financial patterns', checked:false},
+        {id:'p3-7', label:'Identify reachability patterns', checked:false},
+      ],
+      patterns:[
+        {id:uid(), demo:true, category:'Common visual problems', text:'Cybersecurity consultants struggle with consistent visual branding across decks, LinkedIn and case studies.', evidenceCount:14, sampleSize:20, confidence:'Strong', kind:'Observed pattern'}
+      ]
+    },
+    phase4:{
+      persona:{
+        name:'The Expert Consultant',
+        who:'', sells:'', serves:'', want:'',
+        surfaceProblem:'', operationalProblem:'', businessProblem:'', emotionalPain:'',
+        outcome:'', triggers:'', objections:'', criteria:'', values:'', fears:'',
+        whyHire:'', whyNotHire:'', whereTime:'', howFind:''
+      }
+    },
+    phase5:{
+      checklist:[
+        {id:'p5-1', label:'Create persona-specific messaging', checked:false},
+        {id:'p5-2', label:'Align portfolio with persona', checked:false},
+        {id:'p5-3', label:'Create relevant case study', checked:false},
+        {id:'p5-4', label:'Create outreach hypothesis', checked:false},
+        {id:'p5-5', label:'Create content hypothesis', checked:false},
+        {id:'p5-6', label:'Start 30-day test', checked:false},
+        {id:'p5-7', label:'Record responses', checked:false},
+        {id:'p5-8', label:'Track positive signals', checked:false},
+        {id:'p5-9', label:'Track negative signals', checked:false},
+        {id:'p5-10', label:'Record objections', checked:false},
+        {id:'p5-11', label:'Identify what worked', checked:false},
+        {id:'p5-12', label:'Identify what failed', checked:false},
+        {id:'p5-13', label:'Refine persona', checked:false},
+      ]
+    },
+    experiments:[
+      {id:uid(), demo:true, name:'Experiment #01', hypothesis:'Cybersecurity consultants will respond positively to a design service positioned around LinkedIn authority rather than generic graphic design.', audience:'Cybersecurity consultants', channel:'LinkedIn', duration:'30 days', expected:'10 meaningful conversations', actual:'7 conversations', outcome:'Promising', status:'Completed'}
+    ],
+    weeklyReviews:[],
+    monthlyReviews:[],
+    openPhase:'phase2'
+  };
+}
+
+let state = null;
+
+/* ============================= COMPUTATION ============================= */
+function phaseTasks(p){
+  if(p==='phase1') return state.phase1.checklist;
+  if(p==='phase2') return state.phase2.checklist;
+  if(p==='phase3') return state.phase3.checklist;
+  if(p==='phase5') return state.phase5.checklist;
+  return [];
+}
+function phase4Fields(){
+  const per = state.phase4.persona;
+  const keys = ['who','sells','serves','want','surfaceProblem','operationalProblem','businessProblem','emotionalPain','outcome','triggers','objections','criteria','values','fears','whyHire','whyNotHire','whereTime','howFind'];
+  return keys;
+}
+function phasePct(p){
+  if(p==='phase4'){
+    const keys = phase4Fields();
+    const filled = keys.filter(k=>state.phase4.persona[k] && state.phase4.persona[k].trim()).length;
+    return Math.round((filled/keys.length)*100);
+  }
+  const tasks = phaseTasks(p);
+  if(!tasks.length) return 0;
+  return Math.round((tasks.filter(t=>t.checked).length/tasks.length)*100);
+}
+function overallPct(){
+  const parts = ['phase1','phase2','phase3','phase4','phase5'].map(phasePct);
+  return Math.round(parts.reduce((a,b)=>a+b,0)/parts.length);
+}
+function overallCounts(){
+  let done=0, total=0;
+  ['phase1','phase2','phase3','phase5'].forEach(p=>{
+    phaseTasks(p).forEach(t=>{ total++; if(t.checked) done++; });
+  });
+  const keys = phase4Fields();
+  total += keys.length;
+  done += keys.filter(k=>state.phase4.persona[k] && state.phase4.persona[k].trim()).length;
+  return {done,total};
+}
+const PHASE_META = {
+  phase1:{num:'01', name:'Define ICP', label:'Define', desc:'Define who you believe your ideal client is'},
+  phase2:{num:'02', name:'Research real people', label:'Research', desc:'Study real people before building the persona'},
+  phase3:{num:'03', name:'Find patterns', label:'Analyze', desc:'Compare research to identify repeated signals'},
+  phase4:{num:'04', name:'Build client persona', label:'Build', desc:'Turn evidence into a working persona'},
+  phase5:{num:'05', name:'Validate & test', label:'Test', desc:'Run the persona through a real experiment'},
+};
+function nextAction(){
+  for(const p of ['phase1','phase2','phase3','phase4','phase5']){
+    if(phasePct(p) < 100){
+      const meta = PHASE_META[p];
+      if(p==='phase2' && state.phase2.people.length < 3){
+        return {phase:p, title:'Add another person to research', why:`You've researched ${state.phase2.people.length} people so far. Keep collecting real-world evidence before building the persona.`};
+      }
+      const tasks = phaseTasks(p);
+      const nextTask = tasks.find(t=>!t.checked);
+      if(nextTask){
+        return {phase:p, title:nextTask.label, why:`You're in ${meta.name}. ${tasks.filter(t=>t.checked).length} of ${tasks.length} tasks done — keep going.`};
+      }
+      if(p==='phase4'){
+        return {phase:p, title:'Fill in the remaining persona fields', why:'Use what you learned in research and patterns to complete the persona.'};
+      }
+      return {phase:p, title:`Continue ${meta.name}`, why:meta.desc};
+    }
+  }
+  return {phase:'phase5', title:'Review your validated persona', why:'Every phase is complete. Revisit your monthly review to decide next steps.'};
+}
+function fitLabel(score){
+  if(score>=90) return {t:'Excellent fit', cls:'badge-success'};
+  if(score>=75) return {t:'Strong fit', cls:'badge-success'};
+  if(score>=60) return {t:'Possible fit', cls:'badge-warn'};
+  return {t:'Weak fit', cls:'badge-danger'};
+}
+
+/* ============================= HELPERS ============================= */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function esc(s){
+  return (s===undefined||s===null) ? '' : String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function stars(n){
+  n = n||0;
+  let out='';
+  for(let i=1;i<=5;i++) out += i<=n ? '★' : '☆';
+  return out;
+}
+
+/* ============================= RENDER: SHELL ============================= */
+function render(){
+  document.documentElement.setAttribute('data-theme', state.theme);
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${renderSidebar()}
+    <main>${renderView()}</main>
+  `;
+  wireGlobal();
+  wireView();
+}
+
+function renderSidebar(){
+  const items = [
+    ['dashboard','◆','Dashboard'],
+    ['research','○','ICP research'],
+    ['persona','▢','Persona builder'],
+    ['patterns','◈','Pattern analysis'],
+    ['experiments','▤','Experiments'],
+    ['reviews','▥','Reviews'],
+    ['settings','⚙','Settings'],
+  ];
+  const pct = overallPct();
+  return `
+  <div class="sidebar">
+    <div class="brand"><div class="brand-mark"></div><div class="brand-name">Persona OS</div></div>
+    <nav class="nav">
+      ${items.map(([id,icon,label])=>`
+        <button class="nav-item ${state.currentView===id?'active':''}" data-nav="${id}">
+          <span class="nav-icon">${icon}</span><span>${label}</span>
+        </button>`).join('')}
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-foot">
+      <div class="sidebar-progress-label">Overall progress</div>
+      <div class="sidebar-progress-bar"><div class="sidebar-progress-fill" style="width:${pct}%"></div></div>
+      <div class="sidebar-progress-pct">${pct}% complete</div>
+      <div class="sidebar-project"><b>Current project</b>${esc(state.project.name)}</div>
+    </div>
+  </div>`;
+}
+
+function viewTopbar(title, sub){
+  return `<div class="topbar">
+    <div><div class="view-title">${title}</div>${sub?`<div class="view-sub">${sub}</div>`:''}</div>
+    <button class="theme-toggle" data-action="toggle-theme">${state.theme==='light' ? '☾ Dark mode' : '☀ Light mode'}</button>
+  </div>`;
+}
+
+function renderView(){
+  switch(state.currentView){
+    case 'dashboard': return renderDashboard();
+    case 'research': return renderResearch();
+    case 'persona': return renderPersona();
+    case 'patterns': return renderPatterns();
+    case 'experiments': return renderExperiments();
+    case 'reviews': return renderReviews();
+    case 'settings': return renderSettings();
+    default: return renderDashboard();
+  }
+}
+
+/* ============================= DASHBOARD ============================= */
+function renderDashboard(){
+  const {done,total} = overallCounts();
+  const pct = overallPct();
+  const na = nextAction();
+  const order = ['phase1','phase2','phase3','phase4','phase5'];
+  const currentIdx = order.findIndex(p=>phasePct(p)<100);
+  const activeIdx = currentIdx===-1 ? order.length-1 : currentIdx;
+
+  return `
+    ${viewTopbar('Dashboard')}
+    <div class="hero">
+      <div class="hero-greeting">Welcome back 👋</div>
+      <div class="hero-sub">Let's build a client persona based on evidence — not assumptions.</div>
+    </div>
+
+    <div class="panel">
+      <div class="stat-row">
+        <div>
+          <div class="panel-sub" style="margin-bottom:2px;">Overall progress</div>
+          <div class="stat-big">${pct}%</div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="progress-caption">${done} of ${total} tasks completed</div>
+        </div>
+        <div>
+          <div class="panel-sub" style="margin-bottom:10px;">Workflow</div>
+          <div class="stepper">
+            ${order.map((p,i)=>`
+              <div class="step ${i<activeIdx?'done':''} ${i===activeIdx?'current':''}">
+                <div class="step-line"></div>
+                <div class="step-dot"></div>
+                <div class="step-label">${PHASE_META[p].label}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="next-action">
+        <div>
+          <div class="next-action-label">Next action</div>
+          <div class="next-action-title">${esc(na.title)}</div>
+          <div class="next-action-why">${esc(na.why)}</div>
+        </div>
+        <button class="btn btn-primary" data-nav="${na.phase==='phase2'?'research':na.phase==='phase1'?'research':na.phase==='phase3'?'patterns':na.phase==='phase4'?'persona':'settings'}">Continue →</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Current project</div>
+      <div class="panel-sub">${esc(state.project.status)} · created ${esc(state.project.created)} · updated ${esc(state.project.updated)}</div>
+      <div style="font-size:16px; font-weight:600; margin-bottom:6px;">${esc(state.project.name)}</div>
+      <div style="font-size:13px; color:var(--ink-muted); margin-bottom:14px;">${esc(state.project.icp)}</div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap;">
+        ${order.map(p=>`
+          <div style="min-width:110px;">
+            <div style="font-size:11.5px; color:var(--ink-faint); margin-bottom:4px;">${PHASE_META[p].num} · ${PHASE_META[p].label}</div>
+            <div style="font-weight:700; font-size:14px;">${phasePct(p)}%</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Phase 0${order.indexOf(na.phase)+1} — ${PHASE_META[na.phase].name}</div>
+      <div class="panel-sub">${phaseTasks(na.phase).filter(t=>t.checked).length || '—'} / ${phaseTasks(na.phase).length || '—'} tasks completed</div>
+      <button class="btn btn-secondary" data-nav="research">Go to research →</button>
+    </div>
+  `;
+}
+
+/* ============================= PHASE CARD (shared, used in research view) ============================= */
+function renderPhaseCard(p, bodyHtml){
+  const meta = PHASE_META[p];
+  const pct = phasePct(p);
+  const open = state.openPhase===p;
+  return `
+  <div class="phase-card ${open?'open':''}" data-phase-card="${p}">
+    <div class="phase-head" data-toggle-phase="${p}">
+      <div class="phase-head-left">
+        <div class="phase-num">${meta.num}</div>
+        <div>
+          <div class="phase-name">${meta.name}</div>
+          <div class="phase-desc">${meta.desc}</div>
+        </div>
+      </div>
+      <div class="phase-meta">
+        ${pct>=100 ? '<span class="phase-complete-badge">✓ Phase complete</span>' : `
+          <span class="phase-pct">${pct}%</span>
+          <span class="phase-mini-track"><span class="phase-mini-fill" style="width:${pct}%"></span></span>
+        `}
+        <span class="chevron">▶</span>
+      </div>
+    </div>
+    <div class="phase-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function renderChecklist(tasks, prefix){
+  let lastGroup = undefined;
+  return tasks.map(t=>{
+    let groupHtml = '';
+    if('group' in t && t.group !== lastGroup){
+      groupHtml = `<div class="checklist-group-title">${esc(t.group)}</div>`;
+      lastGroup = t.group;
+    }
+    return `${groupHtml}
+      <div class="check-row ${t.checked?'checked':''}" data-toggle-task="${prefix}:${t.id}">
+        <div class="check-box">✓</div>
+        <div class="check-label">${esc(t.label)}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ============================= RESEARCH VIEW ============================= */
+function renderResearch(){
+  const p1body = `
+    ${renderChecklist(state.phase1.checklist, 'phase1')}
+    <div class="hr"></div>
+    <label class="field-label">My current ICP hypothesis</label>
+    <textarea id="icp-hypothesis" rows="3">${esc(state.phase1.hypothesis)}</textarea>
+    <div style="margin-top:10px;"><button class="btn btn-primary btn-sm" data-action="save-hypothesis">Save ICP hypothesis</button></div>
+  `;
+  const p2body = `
+    ${renderChecklist(state.phase2.checklist, 'phase2')}
+    <div class="hr"></div>
+    ${renderPeopleSection()}
+  `;
+  return `
+    ${viewTopbar('ICP research', 'Define who you\'re looking for, then go find them.')}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <div style="font-weight:600; font-size:15px;">${esc(state.project.name)}</div>
+        <div style="font-size:12px; color:var(--ink-muted);">${esc(state.project.status)} · updated ${esc(state.project.updated)}</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary btn-sm" data-action="new-project">+ New project</button>
+        <button class="btn btn-secondary btn-sm" data-action="duplicate-project">Duplicate</button>
+      </div>
+    </div>
+    ${renderPhaseCard('phase1', p1body)}
+    ${renderPhaseCard('phase2', p2body)}
+  `;
+}
+
+function renderPeopleSection(){
+  const people = state.phase2.people;
+  const f = state.researchFilters || {q:'', industry:'', activity:''};
+  const industries = [...new Set(people.map(p=>p.industry).filter(Boolean))];
+  let filtered = people.filter(p=>{
+    if(f.q && !(`${p.name} ${p.company} ${p.role}`.toLowerCase().includes(f.q.toLowerCase()))) return false;
+    if(f.industry && p.industry !== f.industry) return false;
+    if(f.activity && p.linkedinActivity !== f.activity) return false;
+    return true;
+  });
+
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div class="panel-title" style="margin-bottom:0;">Researched people</div>
+      <button class="btn btn-primary btn-sm" data-action="open-add-person">+ Add person</button>
+    </div>
+    <div class="table-toolbar">
+      <input type="text" id="research-search" placeholder="Search people..." value="${esc(f.q)}">
+      <select id="filter-industry">
+        <option value="">All industries</option>
+        ${industries.map(i=>`<option value="${esc(i)}" ${f.industry===i?'selected':''}>${esc(i)}</option>`).join('')}
+      </select>
+      <select id="filter-activity">
+        <option value="">All LinkedIn activity</option>
+        ${['Very Low','Low','Medium','High','Very High'].map(v=>`<option value="${v}" ${f.activity===v?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </div>
+    <div id="people-table-wrap">${renderPeopleTable(filtered)}</div>
+  `;
+}
+
+function renderPeopleTable(list){
+  if(!state.phase2.people.length){
+    return `<div class="empty-state">
+      <h3>Start your research</h3>
+      <p>You haven't added any potential clients yet.</p>
+      <button class="btn btn-primary" data-action="open-add-person">+ Add your first person</button>
+    </div>`;
+  }
+  if(!list.length){
+    return `<div class="empty-state"><p>No people match these filters.</p></div>`;
+  }
+  return `
+    <table>
+      <thead><tr>
+        <th>Person</th><th>Role</th><th>Industry</th><th>LinkedIn activity</th><th>Visual quality</th><th>Fit</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        ${list.map(p=>{
+          const fit = fitLabel(p.fitScore||0);
+          return `<tr class="person-row" data-open-person="${p.id}">
+            <td>${esc(p.name)}${p.demo?'<span class="demo-tag">DEMO</span>':''}<div style="color:var(--ink-faint); font-size:11.5px;">${esc(p.company)}</div></td>
+            <td>${esc(p.role)}</td>
+            <td>${esc(p.industry)}</td>
+            <td><span class="badge badge-neutral">${esc(p.linkedinActivity||'—')}</span></td>
+            <td class="stars">${stars(p.visualQuality)}</td>
+            <td><span class="fit-score">${p.fitScore||'—'}</span></td>
+            <td><span class="badge ${fit.cls}">${esc(p.status||'Researched')}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="cards-mobile">
+      ${list.map(p=>{
+        const fit = fitLabel(p.fitScore||0);
+        return `<div class="list-entry" data-open-person="${p.id}">
+          <div class="list-entry-head">
+            <div class="list-entry-title">${esc(p.name)}${p.demo?'<span class="demo-tag">DEMO</span>':''}</div>
+            <span class="badge ${fit.cls}">${p.fitScore||'—'}</span>
+          </div>
+          <div class="list-entry-meta">${esc(p.role)} · ${esc(p.industry)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function computeFitScore(p){
+  let score = 40;
+  const activityMap = {'Very Low':0,'Low':3,'Medium':7,'High':11,'Very High':14};
+  score += activityMap[p.linkedinActivity]||0;
+  score += (5-(p.visualQuality||0))*4; // low visual quality = higher design opportunity
+  score += (p.contentQuality||0)*2;
+  if(p.painSignals && p.painSignals.trim()) score += 8;
+  if(p.buyingSignals && p.buyingSignals.trim()) score += 10;
+  if(p.opportunity && p.opportunity.trim()) score += 6;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+/* ============================= ADD/VIEW PERSON MODAL ============================= */
+function personFormHtml(p){
+  p = p || {};
+  const field = (id,label,val,type='text') => `
+    <div class="field"><label class="field-label">${label}</label>
+    <input type="${type}" id="${id}" value="${esc(val||'')}"></div>`;
+  const textarea = (id,label,val) => `
+    <div class="field"><label class="field-label">${label}</label>
+    <textarea id="${id}">${esc(val||'')}</textarea></div>`;
+  const select = (id,label,val,options) => `
+    <div class="field"><label class="field-label">${label}</label>
+    <select id="${id}">${options.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+
+  return `
+    <div class="field-row">
+      ${field('pf-name','Person name', p.name)}
+      ${field('pf-company','Company', p.company)}
+    </div>
+    <div class="field-row">
+      ${field('pf-website','Website', p.website, 'url')}
+      ${field('pf-linkedin','LinkedIn URL', p.linkedin, 'url')}
+    </div>
+    <div class="field-row3">
+      ${field('pf-industry','Industry', p.industry)}
+      ${field('pf-role','Role', p.role)}
+      ${field('pf-location','Location', p.location)}
+    </div>
+    ${textarea('pf-sells','What they sell', p.sells)}
+    ${textarea('pf-audience','Target audience', p.audience)}
+    <div class="field-row">
+      ${field('pf-businessmodel','Business model', p.businessModel)}
+      ${field('pf-marketposition','Estimated market position', p.marketPosition)}
+    </div>
+    <div class="field-row3">
+      ${select('pf-activity','LinkedIn activity', p.linkedinActivity||'Medium', ['Very Low','Low','Medium','High','Very High'])}
+      ${select('pf-frequency','Posting frequency', p.postingFrequency||'Weekly', ['Rarely','Weekly','2–3x/week','4–5x/week','Daily'])}
+      ${select('pf-maturity','Personal brand maturity', p.brandMaturity||'Developing', ['Beginner','Developing','Established','Strong','Authority'])}
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">Visual quality (1–5)</label>
+        <select id="pf-visual">${[1,2,3,4,5].map(n=>`<option value="${n}" ${(p.visualQuality||3)===n?'selected':''}>${'★'.repeat(n)}${'☆'.repeat(5-n)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label class="field-label">Content quality (1–5)</label>
+        <select id="pf-content">${[1,2,3,4,5].map(n=>`<option value="${n}" ${(p.contentQuality||3)===n?'selected':''}>${'★'.repeat(n)}${'☆'.repeat(5-n)}</option>`).join('')}</select>
+      </div>
+    </div>
+    ${textarea('pf-pain','Pain signals', p.painSignals)}
+    ${textarea('pf-buying','Buying signals', p.buyingSignals)}
+    ${textarea('pf-opportunity','Possible design opportunity', p.opportunity)}
+    ${textarea('pf-notes','Notes', p.notes)}
+  `;
+}
+
+function readPersonForm(){
+  const val = id => document.getElementById(id).value;
+  return {
+    name:val('pf-name'), company:val('pf-company'), website:val('pf-website'), linkedin:val('pf-linkedin'),
+    industry:val('pf-industry'), role:val('pf-role'), location:val('pf-location'),
+    sells:val('pf-sells'), audience:val('pf-audience'), businessModel:val('pf-businessmodel'), marketPosition:val('pf-marketposition'),
+    linkedinActivity:val('pf-activity'), postingFrequency:val('pf-frequency'), brandMaturity:val('pf-maturity'),
+    visualQuality:parseInt(val('pf-visual')), contentQuality:parseInt(val('pf-content')),
+    painSignals:val('pf-pain'), buyingSignals:val('pf-buying'), opportunity:val('pf-opportunity'), notes:val('pf-notes')
+  };
+}
+
+function openPersonModal(existing){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modal-overlay';
+  const isEdit = !!existing;
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">${isEdit?'Edit person':'Add a potential client'}</div>
+      <div class="modal-sub">Capture what you observe — this becomes the evidence behind your persona.</div>
+      ${personFormHtml(existing)}
+      <div class="modal-actions">
+        ${isEdit?`<button class="btn btn-danger btn-sm" id="pf-delete" style="margin-right:auto;">Delete</button>`:''}
+        <button class="btn btn-secondary" id="pf-cancel">Cancel</button>
+        <button class="btn btn-primary" id="pf-save">${isEdit?'Save changes':'Add person'}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.getElementById('pf-cancel').onclick = ()=>overlay.remove();
+  if(isEdit){
+    document.getElementById('pf-delete').onclick = ()=>{
+      state.phase2.people = state.phase2.people.filter(p=>p.id!==existing.id);
+      overlay.remove(); persist(); render(); showToast('Person deleted');
+    };
+  }
+  document.getElementById('pf-save').onclick = ()=>{
+    const data = readPersonForm();
+    if(!data.name.trim()){ showToast('Give this person a name first'); return; }
+    data.fitScore = computeFitScore(data);
+    data.status = isEdit ? (existing.status||'Researched') : 'Researched';
+    if(isEdit){
+      Object.assign(existing, data);
+    } else {
+      data.id = uid(); data.demo = false;
+      state.phase2.people.push(data);
+    }
+    state.project.updated = new Date().toISOString().slice(0,10);
+    overlay.remove(); persist(); render();
+    showToast(isEdit?'Person updated':'Person added');
+  };
+}
+
+/* ============================= PATTERNS VIEW ============================= */
+const PATTERN_CATEGORIES = ['Common pain points','Common content topics','Common visual problems','Common buying triggers','Common objections','Financial patterns','Reachability patterns'];
+
+function renderPatterns(){
+  const body = `
+    ${renderChecklist(state.phase3.checklist, 'phase3')}
+  `;
+  return `
+    ${viewTopbar('Pattern analysis', 'What are you noticing across the people you\'ve researched?')}
+    ${renderPhaseCard('phase3', body)}
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div class="panel-title" style="margin-bottom:0;">Patterns</div>
+        <button class="btn btn-primary btn-sm" data-action="open-add-pattern">+ Add pattern</button>
+      </div>
+      <div class="panel-sub">Distinguish assumptions from observed patterns from validated insights.</div>
+      ${state.phase3.patterns.length ? state.phase3.patterns.map(renderPatternEntry).join('') : `
+        <div class="empty-state">
+          <h3>Patterns appear after research</h3>
+          <p>Research real people first. Then compare them to identify repeated behaviors, problems, and opportunities.</p>
+        </div>`}
+    </div>
+  `;
+}
+
+function confidenceCls(c){
+  if(c==='Very Strong'||c==='Strong') return 'badge-success';
+  if(c==='Medium') return 'badge-warn';
+  return 'badge-neutral';
+}
+function kindCls(k){
+  if(k==='Validated insight') return 'badge-success';
+  if(k==='Observed pattern') return 'badge-progress';
+  return 'badge-neutral';
+}
+
+function renderPatternEntry(p){
+  return `
+  <div class="list-entry">
+    <div class="list-entry-head">
+      <div>
+        <div class="list-entry-meta">${esc(p.category)}${p.demo?'<span class="demo-tag">DEMO</span>':''}</div>
+        <div class="list-entry-title" style="margin-top:2px;">${esc(p.text)}</div>
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button class="btn-ghost btn-sm" data-delete-pattern="${p.id}">Remove</button>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <span class="badge ${kindCls(p.kind)}">${esc(p.kind)}</span>
+      <span class="badge ${confidenceCls(p.confidence)}">${esc(p.confidence)} confidence</span>
+      <span class="evidence-pill">Evidence: ${p.evidenceCount} / ${p.sampleSize} people</span>
+    </div>
+  </div>`;
+}
+
+function openPatternModal(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">Add a pattern</div>
+      <div class="modal-sub">Ground it in evidence — how many people show this?</div>
+      <div class="field"><label class="field-label">Category</label>
+        <select id="pt-category">${PATTERN_CATEGORIES.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="field"><label class="field-label">Pattern</label>
+        <textarea id="pt-text" placeholder="e.g. Cybersecurity consultants struggle with consistent visual branding."></textarea></div>
+      <div class="field"><label class="field-label">This is currently a...</label>
+        <select id="pt-kind"><option>Assumption</option><option selected>Observed pattern</option><option>Validated insight</option></select></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Evidence count (people)</label><input type="text" id="pt-evidence" value="1"></div>
+        <div class="field"><label class="field-label">Sample size (people researched)</label><input type="text" id="pt-sample" value="${state.phase2.people.length||1}"></div>
+      </div>
+      <div class="field"><label class="field-label">Confidence</label>
+        <select id="pt-confidence"><option>Weak</option><option>Medium</option><option selected>Strong</option><option>Very Strong</option></select></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="pt-cancel">Cancel</button>
+        <button class="btn btn-primary" id="pt-save">Save pattern</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.getElementById('pt-cancel').onclick = ()=>overlay.remove();
+  document.getElementById('pt-save').onclick = ()=>{
+    const text = document.getElementById('pt-text').value.trim();
+    if(!text){ showToast('Describe the pattern first'); return; }
+    state.phase3.patterns.push({
+      id:uid(), demo:false,
+      category:document.getElementById('pt-category').value,
+      text, kind:document.getElementById('pt-kind').value,
+      evidenceCount: parseInt(document.getElementById('pt-evidence').value)||0,
+      sampleSize: parseInt(document.getElementById('pt-sample').value)||0,
+      confidence: document.getElementById('pt-confidence').value
+    });
+    overlay.remove(); persist(); render(); showToast('Pattern saved');
+  };
+}
+
+/* ============================= PERSONA VIEW ============================= */
+const PERSONA_FIELDS = [
+  ['who','Who they are'],['sells','What they sell'],['serves','Who they serve'],['want','What they want'],
+  ['surfaceProblem','Surface problem'],['operationalProblem','Operational problem'],['businessProblem','Business problem'],['emotionalPain','Emotional pain'],
+  ['outcome','Desired outcome'],['triggers','Buying triggers'],['objections','Objections'],['criteria','Decision criteria'],
+  ['values','What they value'],['fears','What they fear'],['whyHire','Why they would hire me'],['whyNotHire','Why they might not hire me'],
+  ['whereTime','Where they spend time'],['howFind','How they find designers'],
+];
+
+function renderPersona(){
+  const persona = state.phase4.persona;
+  const pct = phasePct('phase4');
+  const hasContent = PERSONA_FIELDS.some(([k])=>persona[k] && persona[k].trim());
+  return `
+    ${viewTopbar('Persona builder', 'Turn evidence into a single, working picture of your ideal client.')}
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <div class="panel-title" style="margin-bottom:2px;">Your ideal client persona</div>
+          <div class="panel-sub" style="margin-bottom:0;">${pct}% of fields completed</div>
+        </div>
+        <div class="field" style="width:220px; margin-bottom:0;">
+          <input type="text" id="persona-name" value="${esc(persona.name)}" placeholder="Persona name">
+        </div>
+      </div>
+      <div class="field-row">
+        ${PERSONA_FIELDS.map(([key,label])=>`
+          <div class="field"><label class="field-label">${label}</label>
+          <textarea id="persona-${key}" rows="2">${esc(persona[key])}</textarea></div>
+        `).join('')}
+      </div>
+      <button class="btn btn-primary" data-action="save-persona">Save persona</button>
+    </div>
+
+    ${hasContent ? `
+    <div class="persona-summary">
+      <h2>${esc(persona.name||'Untitled persona')}</h2>
+      <div class="persona-grid">
+        <div><div class="persona-field-label">Who</div><div class="persona-field-value">${esc(persona.who)||'—'}</div></div>
+        <div><div class="persona-field-label">Goal</div><div class="persona-field-value">${esc(persona.outcome)||'—'}</div></div>
+        <div><div class="persona-field-label">Main pain</div><div class="persona-field-value">${esc(persona.emotionalPain||persona.businessProblem)||'—'}</div></div>
+        <div><div class="persona-field-label">Buying trigger</div><div class="persona-field-value">${esc(persona.triggers)||'—'}</div></div>
+        <div><div class="persona-field-label">Values</div><div class="persona-field-value">${esc(persona.values)||'—'}</div></div>
+        <div><div class="persona-field-label">Main objection</div><div class="persona-field-value">${esc(persona.objections)||'—'}</div></div>
+        <div><div class="persona-field-label">What they need</div><div class="persona-field-value">${esc(persona.whyHire)||'—'}</div></div>
+        <div><div class="persona-field-label">Risk</div><div class="persona-field-value">${esc(persona.whyNotHire)||'—'}</div></div>
+      </div>
+    </div>` : ''}
+  `;
+}
+
+/* ============================= EXPERIMENTS VIEW ============================= */
+function renderExperiments(){
+  const p5body = renderChecklist(state.phase5.checklist, 'phase5');
+  return `
+    ${viewTopbar('Experiments', 'Turn the persona into a real, testable hypothesis.')}
+    ${renderPhaseCard('phase5', p5body)}
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div class="panel-title" style="margin-bottom:0;">Experiment tracker</div>
+        <button class="btn btn-primary btn-sm" data-action="open-add-experiment">+ Add experiment</button>
+      </div>
+      ${state.experiments.length ? state.experiments.map(renderExperimentEntry).join('') : `
+        <div class="empty-state"><h3>No experiments yet</h3><p>Once your persona feels grounded, design a small test to validate it.</p></div>`}
+    </div>
+  `;
+}
+
+function statusCls(s){
+  if(s==='Validated') return 'badge-success';
+  if(s==='Rejected') return 'badge-danger';
+  if(s==='Running') return 'badge-progress';
+  return 'badge-neutral';
+}
+
+function renderExperimentEntry(e){
+  return `
+  <div class="list-entry">
+    <div class="list-entry-head">
+      <div class="list-entry-title">${esc(e.name)}${e.demo?'<span class="demo-tag">DEMO</span>':''}</div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span class="badge ${statusCls(e.status)}">${esc(e.status)}</span>
+        <button class="btn-ghost btn-sm" data-delete-experiment="${e.id}">Remove</button>
+      </div>
+    </div>
+    <div class="list-entry-body">${esc(e.hypothesis)}</div>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--ink-muted);">
+      <div><b style="color:var(--ink);">Audience</b> ${esc(e.audience)}</div>
+      <div><b style="color:var(--ink);">Channel</b> ${esc(e.channel)}</div>
+      <div><b style="color:var(--ink);">Duration</b> ${esc(e.duration)}</div>
+      <div><b style="color:var(--ink);">Expected</b> ${esc(e.expected)}</div>
+      <div><b style="color:var(--ink);">Actual</b> ${esc(e.actual)}</div>
+      <div><b style="color:var(--ink);">Outcome</b> ${esc(e.outcome)}</div>
+    </div>
+  </div>`;
+}
+
+function openExperimentModal(){
+  const n = state.experiments.length+1;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">New experiment</div>
+      <div class="field"><label class="field-label">Name</label><input type="text" id="ex-name" value="Experiment #${String(n).padStart(2,'0')}"></div>
+      <div class="field"><label class="field-label">Hypothesis</label><textarea id="ex-hypothesis" placeholder="What do you believe will happen, and why?"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Audience</label><input type="text" id="ex-audience"></div>
+        <div class="field"><label class="field-label">Channel</label><input type="text" id="ex-channel"></div>
+      </div>
+      <div class="field-row3">
+        <div class="field"><label class="field-label">Duration</label><input type="text" id="ex-duration" value="30 days"></div>
+        <div class="field"><label class="field-label">Expected result</label><input type="text" id="ex-expected"></div>
+        <div class="field"><label class="field-label">Actual result</label><input type="text" id="ex-actual"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Outcome notes</label><input type="text" id="ex-outcome"></div>
+        <div class="field"><label class="field-label">Status</label>
+          <select id="ex-status"><option>Planned</option><option>Running</option><option>Completed</option><option>Validated</option><option>Rejected</option></select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="ex-cancel">Cancel</button>
+        <button class="btn btn-primary" id="ex-save">Save experiment</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.getElementById('ex-cancel').onclick = ()=>overlay.remove();
+  document.getElementById('ex-save').onclick = ()=>{
+    const val = id=>document.getElementById(id).value;
+    if(!val('ex-hypothesis').trim()){ showToast('Add a hypothesis first'); return; }
+    state.experiments.push({
+      id:uid(), demo:false, name:val('ex-name'), hypothesis:val('ex-hypothesis'), audience:val('ex-audience'),
+      channel:val('ex-channel'), duration:val('ex-duration'), expected:val('ex-expected'), actual:val('ex-actual'),
+      outcome:val('ex-outcome'), status:val('ex-status')
+    });
+    overlay.remove(); persist(); render(); showToast('Experiment saved');
+  };
+}
+
+/* ============================= REVIEWS VIEW ============================= */
+function renderReviews(){
+  const monthly = {
+    peopleResearched: state.phase2.people.length,
+    strongPatterns: state.phase3.patterns.filter(p=>p.confidence==='Strong'||p.confidence==='Very Strong').length,
+    experimentsCompleted: state.experiments.filter(e=>e.status==='Completed'||e.status==='Validated').length,
+  };
+  return `
+    ${viewTopbar('Reviews', 'Reflect on what you\'re learning, weekly and monthly.')}
+
+    <div class="panel">
+      <div class="panel-title">Weekly review</div>
+      <div class="panel-sub">A quick pulse check — five minutes, every week.</div>
+      <div class="field"><label class="field-label">What did I learn this week?</label><textarea id="wr-learn"></textarea></div>
+      <div class="field"><label class="field-label">What patterns appeared?</label><textarea id="wr-patterns"></textarea></div>
+      <div class="field"><label class="field-label">What surprised me?</label><textarea id="wr-surprise"></textarea></div>
+      <div class="field"><label class="field-label">What assumptions were wrong?</label><textarea id="wr-wrong"></textarea></div>
+      <div class="field"><label class="field-label">What should I test next?</label><textarea id="wr-testnext"></textarea></div>
+      <div class="field"><label class="field-label">What should I stop doing?</label><textarea id="wr-stop"></textarea></div>
+      <div class="field"><label class="field-label">What should I double down on?</label><textarea id="wr-doubledown"></textarea></div>
+      <button class="btn btn-primary" data-action="save-weekly">Save weekly review</button>
+      ${state.weeklyReviews.length ? `<div class="hr"></div>${state.weeklyReviews.slice().reverse().map(r=>`
+        <div class="list-entry">
+          <div class="list-entry-meta">${esc(r.date)}</div>
+          <div class="list-entry-body">${esc(r.learn)}</div>
+        </div>`).join('')}` : ''}
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">30-day persona review</div>
+      <div class="stat-row">
+        <div><div class="panel-sub">People researched</div><div class="stat-big" style="font-size:30px;">${monthly.peopleResearched}</div></div>
+        <div><div class="panel-sub">Strong patterns</div><div class="stat-big" style="font-size:30px;">${monthly.strongPatterns}</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Conversations</label><input type="text" id="mr-conversations"></div>
+        <div class="field"><label class="field-label">Positive responses</label><input type="text" id="mr-positive"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Calls booked</label><input type="text" id="mr-calls"></div>
+        <div class="field"><label class="field-label">New clients</label><input type="text" id="mr-clients"></div>
+      </div>
+      <div class="field"><label class="field-label">Is this persona validated?</label>
+        <select id="mr-verdict">
+          <option value="Needs more data">🟡 Needs more data</option>
+          <option value="Validated">🟢 Validated</option>
+          <option value="Reject / rework">🔴 Reject / rework</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" data-action="save-monthly">Save monthly review</button>
+      ${state.monthlyReviews.length ? `<div class="hr"></div>${state.monthlyReviews.slice().reverse().map(r=>`
+        <div class="list-entry">
+          <div class="list-entry-head"><div class="list-entry-meta">${esc(r.date)}</div><span class="badge ${r.verdict==='Validated'?'badge-success':r.verdict==='Reject / rework'?'badge-danger':'badge-warn'}">${esc(r.verdict)}</span></div>
+          <div class="list-entry-body">${r.conversations||0} conversations · ${r.positive||0} positive · ${r.calls||0} calls · ${r.clients||0} clients</div>
+        </div>`).join('')}` : ''}
+    </div>
+  `;
+}
+
+/* ============================= SETTINGS VIEW ============================= */
+function renderSettings(){
+  return `
+    ${viewTopbar('Settings')}
+    <div class="panel">
+      <div class="panel-title">Project details</div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Project name</label><input type="text" id="set-name" value="${esc(state.project.name)}"></div>
+        <div class="field"><label class="field-label">Status</label>
+          <select id="set-status">${['Not Started','Researching','Building Persona','Testing','Validated','Archived'].map(s=>`<option ${state.project.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="field"><label class="field-label">ICP / market</label><input type="text" id="set-icp" value="${esc(state.project.icp)}"></div>
+      <div class="field"><label class="field-label">Primary goal</label><input type="text" id="set-goal" value="${esc(state.project.goal||'')}"></div>
+      <button class="btn btn-primary" data-action="save-project">Save project</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Appearance</div>
+      <div class="panel-sub">Light mode is the primary experience; switch to dark whenever you like.</div>
+      <button class="btn btn-secondary" data-action="toggle-theme">${state.theme==='light'?'Switch to dark mode':'Switch to light mode'}</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Export &amp; import</div>
+      <div class="panel-sub">Your work already saves automatically. Use these if you want a portable copy.</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" data-action="export-json">Export project (JSON)</button>
+        <button class="btn btn-secondary" data-action="export-csv">Export research (CSV)</button>
+        <label class="btn btn-secondary" style="cursor:pointer;">Import project (JSON)
+          <input type="file" id="import-file" accept="application/json" style="display:none;">
+        </label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Reset</div>
+      <div class="panel-sub">Clear all data and start over with the sample project.</div>
+      <button class="btn btn-danger" data-action="reset-all">Reset all data</button>
+    </div>
+  `;
+}
+
+/* ============================= EVENT WIRING ============================= */
+function wireGlobal(){
+  document.querySelectorAll('[data-nav]').forEach(el=>{
+    el.onclick = ()=>{ state.currentView = el.getAttribute('data-nav'); persist(); render(); };
+  });
+  const themeBtns = document.querySelectorAll('[data-action="toggle-theme"]');
+  themeBtns.forEach(b=> b.onclick = ()=>{ state.theme = state.theme==='light'?'dark':'light'; persist(); render(); });
+}
+
+function wireView(){
+  // phase toggles
+  document.querySelectorAll('[data-toggle-phase]').forEach(el=>{
+    el.onclick = ()=>{
+      const p = el.getAttribute('data-toggle-phase');
+      state.openPhase = state.openPhase===p ? null : p;
+      persist(); render();
+    };
+  });
+  // task toggles
+  document.querySelectorAll('[data-toggle-task]').forEach(el=>{
+    el.onclick = ()=>{
+      const [phase, id] = el.getAttribute('data-toggle-task').split(':');
+      const list = phase==='phase1'?state.phase1.checklist:phase==='phase2'?state.phase2.checklist:phase==='phase3'?state.phase3.checklist:state.phase5.checklist;
+      const task = list.find(t=>t.id===id);
+      if(task){ task.checked = !task.checked; state.project.updated = new Date().toISOString().slice(0,10); }
+      persist(); render();
+    };
+  });
+
+  // research view
+  const searchEl = document.getElementById('research-search');
+  if(searchEl){
+    const refreshTable = ()=>{
+      state.researchFilters = {
+        q: document.getElementById('research-search').value,
+        industry: document.getElementById('filter-industry').value,
+        activity: document.getElementById('filter-activity').value,
+      };
+      const f = state.researchFilters;
+      const filtered = state.phase2.people.filter(p=>{
+        if(f.q && !(`${p.name} ${p.company} ${p.role}`.toLowerCase().includes(f.q.toLowerCase()))) return false;
+        if(f.industry && p.industry !== f.industry) return false;
+        if(f.activity && p.linkedinActivity !== f.activity) return false;
+        return true;
+      });
+      document.getElementById('people-table-wrap').innerHTML = renderPeopleTable(filtered);
+      wirePeopleRows();
+      persist();
+    };
+    searchEl.addEventListener('input', refreshTable);
+    document.getElementById('filter-industry').addEventListener('change', refreshTable);
+    document.getElementById('filter-activity').addEventListener('change', refreshTable);
+  }
+  wirePeopleRows();
+
+  const addPersonBtns = document.querySelectorAll('[data-action="open-add-person"]');
+  addPersonBtns.forEach(b=> b.onclick = ()=>openPersonModal(null));
+
+  const saveHyp = document.getElementById('save-hypothesis') || document.querySelector('[data-action="save-hypothesis"]');
+  if(saveHyp) saveHyp.onclick = ()=>{
+    state.phase1.hypothesis = document.getElementById('icp-hypothesis').value;
+    persist(); showToast('ICP hypothesis saved');
+  };
+
+  const newProjectBtn = document.querySelector('[data-action="new-project"]');
+  if(newProjectBtn) newProjectBtn.onclick = openNewProjectModal;
+  const dupBtn = document.querySelector('[data-action="duplicate-project"]');
+  if(dupBtn) dupBtn.onclick = ()=>{
+    state.project.name = state.project.name + ' (copy)';
+    persist(); render(); showToast('Project duplicated');
+  };
+
+  // patterns
+  const addPatternBtn = document.querySelector('[data-action="open-add-pattern"]');
+  if(addPatternBtn) addPatternBtn.onclick = openPatternModal;
+  document.querySelectorAll('[data-delete-pattern]').forEach(el=>{
+    el.onclick = ()=>{
+      state.phase3.patterns = state.phase3.patterns.filter(p=>p.id!==el.getAttribute('data-delete-pattern'));
+      persist(); render();
+    };
+  });
+
+  // persona
+  const savePersonaBtn = document.querySelector('[data-action="save-persona"]');
+  if(savePersonaBtn) savePersonaBtn.onclick = ()=>{
+    state.phase4.persona.name = document.getElementById('persona-name').value;
+    PERSONA_FIELDS.forEach(([key])=>{
+      state.phase4.persona[key] = document.getElementById('persona-'+key).value;
+    });
+    persist(); render(); showToast('Persona saved');
+  };
+
+  // experiments
+  const addExpBtn = document.querySelector('[data-action="open-add-experiment"]');
+  if(addExpBtn) addExpBtn.onclick = openExperimentModal;
+  document.querySelectorAll('[data-delete-experiment]').forEach(el=>{
+    el.onclick = ()=>{
+      state.experiments = state.experiments.filter(e=>e.id!==el.getAttribute('data-delete-experiment'));
+      persist(); render();
+    };
+  });
+
+  // reviews
+  const saveWeekly = document.querySelector('[data-action="save-weekly"]');
+  if(saveWeekly) saveWeekly.onclick = ()=>{
+    const val = id=>document.getElementById(id).value;
+    state.weeklyReviews.push({
+      date:new Date().toISOString().slice(0,10),
+      learn:val('wr-learn'), patterns:val('wr-patterns'), surprise:val('wr-surprise'),
+      wrong:val('wr-wrong'), testnext:val('wr-testnext'), stop:val('wr-stop'), doubledown:val('wr-doubledown')
+    });
+    persist(); render(); showToast('Weekly review saved');
+  };
+  const saveMonthly = document.querySelector('[data-action="save-monthly"]');
+  if(saveMonthly) saveMonthly.onclick = ()=>{
+    const val = id=>document.getElementById(id).value;
+    state.monthlyReviews.push({
+      date:new Date().toISOString().slice(0,10),
+      conversations:val('mr-conversations'), positive:val('mr-positive'), calls:val('mr-calls'),
+      clients:val('mr-clients'), verdict:val('mr-verdict')
+    });
+    persist(); render(); showToast('Monthly review saved');
+  };
+
+  // settings
+  const saveProjectBtn = document.querySelector('[data-action="save-project"]');
+  if(saveProjectBtn) saveProjectBtn.onclick = ()=>{
+    state.project.name = document.getElementById('set-name').value;
+    state.project.status = document.getElementById('set-status').value;
+    state.project.icp = document.getElementById('set-icp').value;
+    state.project.goal = document.getElementById('set-goal').value;
+    state.project.updated = new Date().toISOString().slice(0,10);
+    persist(); render(); showToast('Project saved');
+  };
+  const exportJsonBtn = document.querySelector('[data-action="export-json"]');
+  if(exportJsonBtn) exportJsonBtn.onclick = ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (state.project.name||'persona-project').replace(/\s+/g,'-').toLowerCase()+'.json';
+    a.click();
+    showToast('Project exported');
+  };
+  const exportCsvBtn = document.querySelector('[data-action="export-csv"]');
+  if(exportCsvBtn) exportCsvBtn.onclick = ()=>{
+    const cols = ['name','company','role','industry','linkedinActivity','postingFrequency','visualQuality','contentQuality','fitScore','painSignals','buyingSignals','opportunity'];
+    const rows = [cols.join(',')].concat(state.phase2.people.map(p=>
+      cols.map(c=>`"${String(p[c]??'').replace(/"/g,'""')}"`).join(',')
+    ));
+    const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'research-people.csv';
+    a.click();
+    showToast('Research exported');
+  };
+  const importFile = document.getElementById('import-file');
+  if(importFile) importFile.onchange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const imported = JSON.parse(reader.result);
+        state = imported;
+        persist(); render(); showToast('Project imported');
+      }catch(err){ showToast('Could not read that file'); }
+    };
+    reader.readAsText(file);
+  };
+  const resetBtn = document.querySelector('[data-action="reset-all"]');
+  if(resetBtn) resetBtn.onclick = ()=>{
+    if(confirm('This clears all data and restores the sample project. Continue?')){
+      state = defaultState();
+      persist(); render(); showToast('Data reset');
+    }
+  };
+}
+
+function wirePeopleRows(){
+  document.querySelectorAll('[data-open-person]').forEach(el=>{
+    el.onclick = ()=>{
+      const person = state.phase2.people.find(p=>p.id===el.getAttribute('data-open-person'));
+      if(person) openPersonModal(person);
+    };
+  });
+}
+
+function openNewProjectModal(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">Create new project</div>
+      <div class="field"><label class="field-label">Project name</label><input type="text" id="np-name"></div>
+      <div class="field"><label class="field-label">ICP / market</label><input type="text" id="np-icp"></div>
+      <div class="field"><label class="field-label">Primary goal</label><input type="text" id="np-goal"></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Start date</label><input type="date" id="np-date" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="field"><label class="field-label">Status</label>
+          <select id="np-status">${['Not Started','Researching','Building Persona','Testing','Validated','Archived'].map(s=>`<option>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="np-cancel">Cancel</button>
+        <button class="btn btn-primary" id="np-save">Create project</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.getElementById('np-cancel').onclick = ()=>overlay.remove();
+  document.getElementById('np-save').onclick = ()=>{
+    const name = document.getElementById('np-name').value.trim();
+    if(!name){ showToast('Give the project a name'); return; }
+    const fresh = defaultState();
+    fresh.theme = state.theme;
+    fresh.project = {
+      name, icp:document.getElementById('np-icp').value, goal:document.getElementById('np-goal').value,
+      status:document.getElementById('np-status').value, created:document.getElementById('np-date').value,
+      updated:document.getElementById('np-date').value
+    };
+    fresh.phase1.checklist.forEach(t=>t.checked=false);
+    fresh.phase1.hypothesis='';
+    fresh.phase2.checklist.forEach(t=>t.checked=false);
+    fresh.phase2.people=[];
+    fresh.phase3.checklist.forEach(t=>t.checked=false);
+    fresh.phase3.patterns=[];
+    fresh.phase4.persona = {name:'', who:'',sells:'',serves:'',want:'',surfaceProblem:'',operationalProblem:'',businessProblem:'',emotionalPain:'',outcome:'',triggers:'',objections:'',criteria:'',values:'',fears:'',whyHire:'',whyNotHire:'',whereTime:'',howFind:''};
+    fresh.phase5.checklist.forEach(t=>t.checked=false);
+    fresh.experiments=[]; fresh.weeklyReviews=[]; fresh.monthlyReviews=[];
+    fresh.currentView='research';
+    state = fresh;
+    overlay.remove(); persist(); render(); showToast('New project created');
+  };
+}
+
+/* ============================= BOOT ============================= */
+(async function boot(){
+  const saved = await loadState();
+  state = saved || defaultState();
+  if(!state.researchFilters) state.researchFilters = {q:'',industry:'',activity:''};
+  render();
+})();
+</script>
+</body>
+</html>
